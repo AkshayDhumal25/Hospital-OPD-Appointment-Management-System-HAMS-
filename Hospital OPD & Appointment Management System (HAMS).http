@@ -1,0 +1,6 @@
+@Hospital_OPD___Appointment_Management_System__HAMS__HostAddress = http://localhost:5269
+
+GET {{Hospital_OPD___Appointment_Management_System__HAMS__HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
