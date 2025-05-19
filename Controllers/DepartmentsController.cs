@@ -33,7 +33,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Controllers
         }
 
         [HttpPost]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] Department dept)
         {
             var created = await _departmentService.CreateDepartmentAsync(dept);
@@ -41,7 +41,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Controllers
         }
 
         [HttpPut("{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] Department dept)
         {
             if (id != dept.Id) return BadRequest();
@@ -51,7 +51,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _departmentService.DeleteDepartmentAsync(id);

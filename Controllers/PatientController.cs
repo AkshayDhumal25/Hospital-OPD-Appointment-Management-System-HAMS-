@@ -86,7 +86,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Controllers
         //}
 
         [HttpGet("search")]
-        //[Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> SearchPatients(string query)
         {
             var patients = await _patientService.SearchPatientsAsync(query);
@@ -98,7 +98,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Controllers
 
 
         [HttpPut("{id}")]
-        //[Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> UpdatePatient(int id, [FromBody] Patient patient)
         {
             if (id != patient.Id)
