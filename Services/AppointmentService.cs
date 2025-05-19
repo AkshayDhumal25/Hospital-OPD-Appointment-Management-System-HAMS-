@@ -32,27 +32,61 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
+        //public async Task<Appointment> BookAppointmentAsync(Appointment appointment)
+        //{
+        //    // Optional: check doctor availability or overlapping appointments here before adding
+        //    var doctor = await _context.Doctors.FindAsync(appointment.DoctorId);
+        //    if (doctor == null)
+        //    {
+        //        throw new InvalidOperationException("Doctor not found.");
+        //    }
+
+        //    // Check if doctor is on leave
+        //    if (doctor.IsOnLeave)
+        //    {
+        //        throw new InvalidOperationException("Doctor is currently on leave. Cannot book appointment.");
+        //    }
+        //    appointment.Status = "Scheduled"; // default status
+
+        //    _context.Appointments.Add(appointment);
+        //    await _context.SaveChangesAsync();
+
+        //    return appointment;
+        //}
         public async Task<Appointment> BookAppointmentAsync(Appointment appointment)
         {
-            // Optional: check doctor availability or overlapping appointments here before adding
+            // Check if doctor exists and is not on leave
             var doctor = await _context.Doctors.FindAsync(appointment.DoctorId);
-            if (doctor == null)
+            if (doctor == null || doctor.IsOnLeave)
+                return null;
+
+            // Get available slots for the given date
+            var slots = await GetAvailableSlotsAsync(appointment.DoctorId, appointment.DateTime.Date);
+
+            if (slots.Count == 0)
             {
-                throw new InvalidOperationException("Doctor not found.");
+                // No slots left today — check tomorrow
+                DateTime nextDay = appointment.DateTime.Date.AddDays(1);
+                slots = await GetAvailableSlotsAsync(appointment.DoctorId, nextDay);
+                if (slots.Count == 0)
+                    return null; // No slot tomorrow either
+                appointment.DateTime = slots.First(); // book first slot tomorrow
+            }
+            else
+            {
+                // if requested time not available, assign first available
+                if (!slots.Contains(appointment.DateTime))
+                    appointment.DateTime = slots.First();
             }
 
-            // Check if doctor is on leave
-            if (doctor.IsOnLeave)
-            {
-                throw new InvalidOperationException("Doctor is currently on leave. Cannot book appointment.");
-            }
-            appointment.Status = "Scheduled"; // default status
+            appointment.Status = "Scheduled";
 
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
 
             return appointment;
         }
+
 
         public async Task<bool> CancelAppointmentAsync(int id)
         {
