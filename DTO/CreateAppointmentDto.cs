@@ -6,7 +6,7 @@
         public int DoctorId { get; set; }
         public DateTime DateTime { get; set; }
 
-
+        
 
     }
 }

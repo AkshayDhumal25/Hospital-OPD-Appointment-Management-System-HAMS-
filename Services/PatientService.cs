@@ -24,7 +24,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
 
 
         public async Task<Patient> AddPatient(Patient patient)
-        {
+        {                                                                                                                        
             _context.patients.Add(patient);
             await _context.SaveChangesAsync();
             return patient;

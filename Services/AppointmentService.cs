@@ -2,16 +2,21 @@
 using Hospital_OPD___Appointment_Management_System__HAMS_.Models;
 using Hospital_OPD___Appointment_Management_System__HAMS_.Services.IServices;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using NETCore.MailKit.Core;
+using IEmailService = Hospital_OPD___Appointment_Management_System__HAMS_.Services.IServices.IEmailService;
 namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
 {
     public class AppointmentService : IAppointmentService
     {
         private readonly AppDbContext _context;
-
-        public AppointmentService(AppDbContext context)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEmailService _emailService;
+        public AppointmentService(AppDbContext context, IHttpContextAccessor httpContextAccessor, IEmailService emailService)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+            _emailService = emailService;
         }
 
         public async Task<IEnumerable<Appointment>> GetAllAsync()
@@ -32,32 +37,15 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
-        //public async Task<Appointment> BookAppointmentAsync(Appointment appointment)
-        //{
-        //    // Optional: check doctor availability or overlapping appointments here before adding
-        //    var doctor = await _context.Doctors.FindAsync(appointment.DoctorId);
-        //    if (doctor == null)
-        //    {
-        //        throw new InvalidOperationException("Doctor not found.");
-        //    }
-
-        //    // Check if doctor is on leave
-        //    if (doctor.IsOnLeave)
-        //    {
-        //        throw new InvalidOperationException("Doctor is currently on leave. Cannot book appointment.");
-        //    }
-        //    appointment.Status = "Scheduled"; // default status
-
-        //    _context.Appointments.Add(appointment);
-        //    await _context.SaveChangesAsync();
-
-        //    return appointment;
-        //}
+        
         public async Task<Appointment> BookAppointmentAsync(Appointment appointment)
         {
             // Check if doctor exists and is not on leave
             var doctor = await _context.Doctors.FindAsync(appointment.DoctorId);
             if (doctor == null || doctor.IsOnLeave)
+                return null;
+
+            if (doctor.IsOnLeave)
                 return null;
 
             // Get available slots for the given date
@@ -84,7 +72,35 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
 
+            var currentUser = _httpContextAccessor.HttpContext?.User.Identity?.Name ?? "Unknown User";
+            var currentRole = _httpContextAccessor.HttpContext?.User.Claims
+                .FirstOrDefault(c => c.Type == "role")?.Value ?? "Unknown Role";
+
+            // ✅ Log the action
+            await LogActionAsync("Book Appointment", currentRole,
+                $"Booked appointment for patient {appointment.PatientId} with doctor {appointment.DoctorId} at {appointment.DateTime} by {currentUser}");
+
+            //_context.Appointments.Add(appointment);
+            // Fetch patient and doctor details (if needed)
+            var patient = await _context.patients.FindAsync(appointment.PatientId);
+            var doctor1 = await _context.Doctors.FindAsync(appointment.DoctorId);
+
+            // Prepare email data
+            string patientEmail = patient.Email;
+            string doctorName = doctor1.Name;
+
+            // Send confirmation email
+            await _emailService.SendEmailAsync(patientEmail,
+                "Appointment Confirmation",
+                $"Your appointment is confirmed with Doctor {doctorName} at {appointment.DateTime}");
+            await _context.SaveChangesAsync();
+            
+
+
             return appointment;
+
+
+            //return appointment;
         }
 
 
@@ -167,6 +183,27 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
             }
 
             return slots;
+        }
+
+
+        private async Task LogActionAsync(string action,string performedBy, string details)
+        {
+
+            var log = new AuditLog
+            {
+                Action = action,
+                PerformedBy = performedBy,
+                PerformedAt = DateTime.Now,
+                Details = details
+            };
+
+            _context.AuditLogs.Add(log);
+
+            await _context.SaveChangesAsync();
+            var currentUser = _httpContextAccessor.HttpContext?.User.Identity?.Name ?? "Unknown User";
+            var currentRole = _httpContextAccessor.HttpContext?.User.Claims
+                .FirstOrDefault(c => c.Type == "role")?.Value ?? "Unknown Role";
+
         }
 
     }

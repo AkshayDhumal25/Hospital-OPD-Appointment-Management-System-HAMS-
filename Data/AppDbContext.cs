@@ -24,6 +24,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Data
 
         public DbSet<ApplicationUser> Users { get; set; }
 
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
 
     }
