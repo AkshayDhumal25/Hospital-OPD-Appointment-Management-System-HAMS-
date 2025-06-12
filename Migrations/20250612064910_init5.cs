@@ -5,7 +5,7 @@
 namespace Hospital_OPD___Appointment_Management_System__HAMS_.Migrations
 {
     /// <inheritdoc />
-    public partial class init1 : Migration
+    public partial class init5 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

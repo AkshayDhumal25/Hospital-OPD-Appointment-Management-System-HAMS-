@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital_OPD___Appointment_Management_System__HAMS_.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250611091833_init1")]
+    [Migration("20250612051736_init1")]
     partial class init1
     {
         /// <inheritdoc />

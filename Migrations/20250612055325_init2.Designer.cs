@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital_OPD___Appointment_Management_System__HAMS_.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250611102305_init4")]
-    partial class init4
+    [Migration("20250612055325_init2")]
+    partial class init2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
