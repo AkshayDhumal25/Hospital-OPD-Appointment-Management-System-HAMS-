@@ -31,12 +31,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Models
         [Required]
         public string Address { get; set; }
 
-        
 
-
-        //[Required,NotNull]
-
-        //public string Password { get; set; } 
 
 
 

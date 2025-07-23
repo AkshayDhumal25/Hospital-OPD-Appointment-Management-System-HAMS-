@@ -13,7 +13,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Models
                 var admin = new ApplicationUser
                 {
                     Username = "admin",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),  // use a strong default password
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"), 
                     Role = "Admin"
                 };
 

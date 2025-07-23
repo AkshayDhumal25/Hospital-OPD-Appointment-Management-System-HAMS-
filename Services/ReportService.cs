@@ -20,7 +20,6 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
 
             var result = await _context.Appointments
                 .Where(a => a.DateTime.Date == today)
-                //.GroupBy(a => new { a.Doctor.Name, a.Doctor.Department.Name })
                 .GroupBy(a => new
                 {
                     DoctorName = a.Doctor.Name,
@@ -41,7 +40,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
 
         public async Task<IEnumerable<DoctorUtilizationDto>> GetDoctorUtilizationAsync()
         {
-            var totalSlots = 10; // Assume 10 slots per doctor daily for simplicity
+            var totalSlots = 10; 
 
             var today = DateTime.Today;
 

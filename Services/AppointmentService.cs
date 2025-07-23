@@ -40,7 +40,6 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
         
         public async Task<Appointment> BookAppointmentAsync(Appointment appointment)
         {
-            // Check if doctor exists and is not on leave
             var doctor = await _context.Doctors.FindAsync(appointment.DoctorId);
             if (doctor == null || doctor.IsOnLeave)
                 return null;
@@ -48,21 +47,21 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
             if (doctor.IsOnLeave)
                 return null;
 
-            // Get available slots for the given date
+            
             var slots = await GetAvailableSlotsAsync(appointment.DoctorId, appointment.DateTime.Date);
 
             if (slots.Count == 0)
             {
-                // No slots left today — check tomorrow
+                
                 DateTime nextDay = appointment.DateTime.Date.AddDays(1);
                 slots = await GetAvailableSlotsAsync(appointment.DoctorId, nextDay);
                 if (slots.Count == 0)
-                    return null; // No slot tomorrow either
-                appointment.DateTime = slots.First(); // book first slot tomorrow
+                    return null; 
+                appointment.DateTime = slots.First(); 
             }
             else
             {
-                // if requested time not available, assign first available
+                
                 if (!slots.Contains(appointment.DateTime))
                     appointment.DateTime = slots.First();
             }
@@ -76,20 +75,19 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
             var currentRole = _httpContextAccessor.HttpContext?.User.Claims
                 .FirstOrDefault(c => c.Type == "role")?.Value ?? "Unknown Role";
 
-            // ✅ Log the action
+           
             await LogActionAsync("Book Appointment", currentRole,
                 $"Booked appointment for patient {appointment.PatientId} with doctor {appointment.DoctorId} at {appointment.DateTime} by {currentUser}");
 
-            //_context.Appointments.Add(appointment);
-            // Fetch patient and doctor details (if needed)
+            
             var patient = await _context.patients.FindAsync(appointment.PatientId);
             var doctor1 = await _context.Doctors.FindAsync(appointment.DoctorId);
 
-            // Prepare email data
+            
             string patientEmail = patient.Email;
             string doctorName = doctor1.Name;
 
-            // Send confirmation email
+            
             await _emailService.SendEmailAsync(patientEmail,
                 "Appointment Confirmation",
                 $"Your appointment is confirmed with Doctor {doctorName} at {appointment.DateTime}");
@@ -100,7 +98,6 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
             return appointment;
 
 
-            //return appointment;
         }
 
 
@@ -122,7 +119,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
             if (appointment == null) return false;
 
             appointment.DateTime = newDateTime;
-            appointment.Status = "Scheduled"; // reset status if needed
+            appointment.Status = "Scheduled"; 
             _context.Appointments.Update(appointment);
             var result = await _context.SaveChangesAsync();
 
@@ -139,7 +136,7 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
 
         public async Task<IEnumerable<Appointment>> GetDoctorScheduleAsync(int doctorId, DateTime date)
         {
-            // Similar to GetAppointmentsByDoctorAndDateAsync, but can include all statuses or more filters
+            
             return await _context.Appointments
                 .Where(a => a.DoctorId == doctorId && a.DateTime.Date == date.Date)
                 .Include(a => a.Patient)
@@ -151,26 +148,26 @@ namespace Hospital_OPD___Appointment_Management_System__HAMS_.Services
         {
             var doctor = await _context.Doctors.FindAsync(doctorId);
             if (doctor == null || doctor.IsOnLeave)
-                return new List<DateTime>(); // doctor not available or on leave
+                return new List<DateTime>(); 
 
-            // Define working hours
-            DateTime startTime = date.Date.AddHours(8);  // 8:00 AM
-            DateTime endTime = date.Date.AddHours(18);   // 6:00 PM
-            DateTime breakStart = date.Date.AddHours(13); // 1:00 PM
-            DateTime breakEnd = date.Date.AddHours(14);   // 2:00 PM
+            
+            DateTime startTime = date.Date.AddHours(8);  
+            DateTime endTime = date.Date.AddHours(18);   
+            DateTime breakStart = date.Date.AddHours(13); 
+            DateTime breakEnd = date.Date.AddHours(14);   
 
             List<DateTime> slots = new();
 
             while (startTime < endTime)
             {
-                // Skip break
+                
                 if (startTime >= breakStart && startTime < breakEnd)
                 {
                     startTime = breakEnd;
                     continue;
                 }
 
-                // Check if slot is already booked
+                
                 bool isBooked = await _context.Appointments
                     .AnyAsync(a => a.DoctorId == doctorId && a.DateTime == startTime && a.Status == "Scheduled");
 

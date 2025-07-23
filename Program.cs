@@ -11,12 +11,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-// Configure Kestrel to listen on port 8080 (used in Docker)
+
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(8080);
 });
-// Add services to the container.
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -45,7 +45,6 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
 
-    //builder.WebHost.UseUrls("http:0.0.0.0:8080");
     c.AddSecurityRequirement(new OpenApiSecurityRequirement()
     {
         {
@@ -106,7 +105,7 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();   // MUST be before UseAuthorization
+app.UseAuthentication();   
 app.UseAuthorization();
 
 app.MapControllers();
